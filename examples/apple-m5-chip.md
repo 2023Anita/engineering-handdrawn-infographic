@@ -2,6 +2,12 @@
 
 这是一个“功能模块示意”案例，不把图像模型生成的布局描述成 Apple 未公开的晶体管级物理版图。
 
+## 生成结果
+
+![MacBook Air M5 芯片组成手绘工程信息图](assets/apple-m5-chip-infographic.png)
+
+文件：[`assets/apple-m5-chip-infographic.png`](assets/apple-m5-chip-infographic.png)
+
 ```text
 使用 $engineering-handdrawn-infographic 生成一张竖版手绘工程科普信息图。
 

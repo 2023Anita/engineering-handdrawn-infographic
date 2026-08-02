@@ -20,6 +20,8 @@
 .
 ├── README.md
 ├── examples/
+│   ├── assets/
+│   │   └── apple-m5-chip-infographic.png
 │   ├── apple-m5-chip.md
 │   └── three-phase-induction-motor.md
 └── skills/
@@ -90,6 +92,12 @@ Skill 会把用户需求整理为结构化提示词，然后按以下顺序工�
 
 - [`examples/apple-m5-chip.md`](examples/apple-m5-chip.md)：芯片功能模块示意，包含 CPU、GPU、神经网络加速器、神经网络引擎、统一内存和媒体引擎。
 - [`examples/three-phase-induction-motor.md`](examples/three-phase-induction-motor.md)：机械剖视示意，包含定子、三相绕组、鼠笼式转子、转轴和轴承等工程关系。
+
+### Apple M5 芯片示例预览
+
+![MacBook Air M5 芯片组成手绘工程信息图](examples/assets/apple-m5-chip-infographic.png)
+
+这张图是本 Skill 实际生成并经过两次定向校正的示例：修正了 CPU 的 4 个性能核心 + 6 个能效核心数量，并将“GPU 神经网络加速器”箭头指向 GPU 核心内的加速器符号。
 
 ## 许可与贡献
 
