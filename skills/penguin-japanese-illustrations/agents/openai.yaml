@@ -1,4 +1,0 @@
-interface:
-  display_name: "小企鹅日式配图"
-  short_description: "为中文文章与角色图生成统一角色的可爱日式手绘小企鹅配图"
-  default_prompt: "使用 $penguin-japanese-illustrations 生成一张可爱、留白、手绘风格的小企鹅日式配图。"

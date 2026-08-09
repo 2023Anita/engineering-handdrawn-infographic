@@ -41,22 +41,6 @@ cp -R skills/engineering-handdrawn-infographic ~/.codex/skills/
 
 如果使用自定义 `CODEX_HOME`，复制到对应的 `$CODEX_HOME/skills/`。完成后重新打开 Codex 任务或重启应用，让 Skill 索引刷新。
 
-## 小企鹅日式配图 Skill
-
-仓库同时包含一个固定原创角色「小冰团」的可爱日式留白手绘配图 Skill：
-
-```bash
-cp -R skills/penguin-japanese-illustrations ~/.codex/skills/
-```
-
-调用方式：
-
-```text
-使用 $penguin-japanese-illustrations 生成一张小企鹅日式配图。
-```
-
-它内置角色锁定卡、当前 v3 参考图、提示词模板和 QA 清单，支持角色定妆、姿态表情、生活化场景和中文正文配图。
-
 ## 调用方式
 
 ### 直接生成图片
