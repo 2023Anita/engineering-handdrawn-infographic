@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>手帐模拟器 · Live Notebook</title>
+  <style>
+    :root {
+      --ink: #25343a;
+      --ink-soft: #5a6b6f;
+      --paper: #fcf8ee;
+      --paper-deep: #f3eadb;
+      --sea: #a8dedb;
+      --sea-deep: #4d9997;
+      --coral: #dc725e;
+      --sun: #f0c157;
+      --mint: #a7d7b9;
+      --lavender: #b7afd3;
+      --line: #d7d0c1;
+      --panel: rgba(255, 253, 247, .86);
+      --shadow: 0 22px 60px rgba(35, 73, 76, .18);
+      --hand-font: "HanziPen SC", "HanziPen TC", "Hannotate SC", "Hannotate TC", "Wawati SC", "Wawati TC", "Kaiti SC", "STKaiti", "FZKai-Z03", "KaiTi", "Noto Serif CJK SC", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: #9ed8d8; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--hand-font);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255,255,255,.66), transparent 26rem),
+        radial-gradient(circle at 92% 14%, rgba(255,255,255,.28), transparent 24rem),
+        linear-gradient(135deg, #b5e5e2 0%, #8ac9cd 48%, #62a9ae 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image: radial-gradient(rgba(255,255,255,.55) .7px, transparent .7px);
+      background-size: 7px 7px;
+      mix-blend-mode: soft-light;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell {
+      width: min(1460px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+      color: #173f43;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #296f73;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, p { margin: 0; }
+    .masthead h1 {
+      font-family: var(--hand-font);
+      font-size: clamp(31px, 4vw, 52px);
+      font-weight: 600;
+      letter-spacing: .03em;
+      line-height: .98;
+    }
+
+    .masthead-note {
+      max-width: 400px;
+      color: rgba(23, 63, 67, .76);
+      font-size: 13px;
+      line-height: 1.65;
+      text-align: right;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(256px, 304px) minmax(0, 1fr);
+      align-items: start;
+      gap: 18px;
+    }
+
+    .control-panel {
+      position: sticky;
+      top: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.75);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel-head {
+      padding: 21px 21px 17px;
+      border-bottom: 1px dashed rgba(77, 153, 151, .34);
+    }
+
+    .panel-head h2 {
+      font-family: var(--hand-font);
+      font-size: 25px;
+      font-weight: 600;
+    }
+
+    .panel-head p {
+      margin-top: 6px;
+      color: var(--ink-soft);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .form-body { padding: 17px 18px 19px; }
+    .field { margin-bottom: 15px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 7px;
+      color: #496165;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .field-label span:last-child {
+      color: #8b9a9b;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    input[type="text"], textarea, select, input[type="number"] {
+      width: 100%;
+      border: 1px solid #d8d4c8;
+      border-radius: 11px;
+      outline: none;
+      color: var(--ink);
+      background: rgba(255,255,255,.64);
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    input[type="text"], input[type="number"], select {
+      min-height: 38px;
+      padding: 8px 10px;
+    }
+
+    textarea {
+      min-height: 58px;
+      resize: vertical;
+      padding: 10px;
+      line-height: 1.5;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--sea-deep);
+      background: #fffef9;
+      box-shadow: 0 0 0 3px rgba(77,153,151,.15);
+    }
+
+    .point-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 92px;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+    .point-row input, .point-row select { min-height: 34px; font-size: 12px; }
+    .point-row input { padding: 7px 8px; }
+    .point-row select { padding: 5px 4px; }
+
+    .chart-fields {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .chart-fields input { text-align: center; }
+
+    .panel-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      min-height: 38px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 8px 10px;
+      color: #fffef7;
+      background: var(--sea-deep);
+      box-shadow: 0 7px 15px rgba(55, 121, 120, .18);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .03em;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(55,121,120,.25); }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary {
+      color: #3a5a5c;
+      border-color: #cadbd6;
+      background: rgba(255,255,255,.55);
+      box-shadow: none;
+    }
+    .btn.secondary:hover { background: #fffef8; }
+
+    .tip {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 12px;
+      color: #566b6e;
+      background: rgba(240,193,87,.15);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .tip::before { content: "✳"; color: #c98f28; font-size: 14px; }
+
+    .stage-column { min-width: 0; }
+    .stage-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 4px 10px;
+    }
+    .stage-toolbar .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: rgba(23,63,67,.8);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 4px rgba(220,114,94,.17);
+    }
+    .status-dot.playing { background: #4ea875; box-shadow: 0 0 0 4px rgba(78,168,117,.17); }
+    .toolbar-actions { display: flex; gap: 8px; }
+    .mini-btn {
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: 999px;
+      color: #285a5d;
+      background: rgba(255,255,255,.43);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .mini-btn:hover { background: rgba(255,255,255,.72); }
+
+    .stage-frame {
+      position: relative;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.78);
+      border-radius: 24px;
+      background: rgba(26, 81, 85, .33);
+      box-shadow: 0 25px 65px rgba(30, 92, 95, .22), inset 0 1px rgba(255,255,255,.32);
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1200 / 804;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #b4dfdc;
+      box-shadow: 0 10px 30px rgba(21, 65, 68, .2);
+      isolation: isolate;
+    }
+
+    .stage::before, .stage::after {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(2px);
+    }
+    .stage::before {
+      width: 90%; height: 44%; left: -12%; bottom: -23%;
+      background: radial-gradient(ellipse, rgba(35,131,143,.85), rgba(95,181,181,.24) 66%, transparent 70%);
+      transform: rotate(-7deg);
+    }
+    .stage::after {
+      width: 72%; height: 35%; right: -16%; bottom: -13%;
+      background: radial-gradient(ellipse, rgba(30,112,132,.62), transparent 69%);
+      transform: rotate(9deg);
+    }
+
+    #scene { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; }
+    .stage-caption {
+      position: absolute;
+      z-index: 3;
+      right: 18px;
+      bottom: 14px;
+      padding: 5px 8px;
+      border: 1px solid rgba(255,255,255,.38);
+      border-radius: 999px;
+      color: rgba(255,255,255,.78);
+      background: rgba(30,87,90,.26);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .playback {
+      display: grid;
+      grid-template-columns: auto auto minmax(130px, 1fr) auto auto;
+      align-items: center;
+      gap: 9px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 15px;
+      background: rgba(255,253,247,.62);
+      box-shadow: 0 13px 30px rgba(35, 83, 84, .1);
+      backdrop-filter: blur(16px);
+    }
+    .playback button {
+      min-width: 35px;
+      height: 32px;
+      border: 1px solid #c7d8d1;
+      border-radius: 9px;
+      color: #2c5c5e;
+      background: rgba(255,255,255,.7);
+      font-weight: 800;
+    }
+    .playback button.primary { color: #fffef7; border-color: var(--sea-deep); background: var(--sea-deep); }
+    .playback button:hover { transform: translateY(-1px); }
+    .time-readout { min-width: 75px; color: #617577; font-size: 11px; font-variant-numeric: tabular-nums; text-align: right; }
+    .speed-pills { display: flex; gap: 4px; }
+    .speed-pills button { min-width: 34px; height: 27px; border: 0; border-radius: 999px; color: #688081; background: transparent; font-size: 10px; }
+    .speed-pills button.active { color: #fffef8; background: var(--coral); }
+    input[type="range"] { width: 100%; accent-color: var(--coral); }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 16px;
+      margin-top: 12px;
+      color: rgba(23,63,67,.72);
+      font-size: 11px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    @media (max-width: 1020px) {
+      .workspace { grid-template-columns: 1fr; }
+      .control-panel { position: static; }
+      .form-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+      .form-body .field { min-width: 0; }
+      .form-body .field:nth-child(3) { grid-column: 1 / -1; }
+      .panel-actions, .tip { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell { width: min(100% - 20px, 600px); padding-top: 17px; }
+      .masthead { display: block; }
+      .masthead-note { margin-top: 12px; text-align: left; }
+      .form-body { display: block; }
+      .stage-frame { padding: 7px; border-radius: 17px; }
+      .playback { grid-template-columns: auto auto minmax(70px, 1fr) auto; }
+      .speed-pills { grid-column: 1 / -1; justify-content: center; padding-top: 4px; }
+      .time-readout { min-width: 62px; }
+      .stage-caption { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">Interactive notebook / 01</p>
+        <h1>让知识点自己写下来</h1>
+      </div>
+      <p class="masthead-note">输入一段想留下来的话。手势笔会沿着纸面移动，文字、重点标记、贴纸和图表会逐个出现。</p>
+    </header>
+
+    <main class="workspace">
+      <aside class="control-panel" aria-label="手帐内容编辑器">
+        <div class="panel-head">
+          <p class="eyebrow">Content desk</p>
+          <h2>先写下今天的重点</h2>
+          <p>修改文字和标记方式，然后点击“应用并重播”。内容只保存在当前页面。</p>
+        </div>
+        <form class="form-body" id="content-form">
+          <div class="field">
+            <label class="field-label" for="title-input"><span>标题</span><span>左页</span></label>
+            <input id="title-input" type="text" value="剖解手帐" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="field-label" for="subtitle-input"><span>引导句</span><span>一行即可</span></label>
+            <textarea id="subtitle-input" rows="2">把知识点写成可以回看的动作</textarea>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>知识点</span><span>文字 + 动作</span></div>
+            <div id="point-list"></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>右页饼图</span><span>三个数字</span></div>
+            <div class="chart-fields">
+              <input id="chart-a" type="number" min="1" max="98" value="42" aria-label="第一项比例">
+              <input id="chart-b" type="number" min="1" max="98" value="35" aria-label="第二项比例">
+              <input id="chart-c" type="number" min="1" max="98" value="23" aria-label="第三项比例">
+            </div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn" type="submit">应用并重播</button>
+            <button class="btn secondary" type="button" id="sample-btn">恢复示例</button>
+          </div>
+          <div class="tip">这是实时模拟器，不是视频。你可以暂停、拖动进度，或用 0.5× 慢慢观察笔尖。</div>
+        </form>
+      </aside>
+
+      <section class="stage-column" aria-label="手帐动画舞台">
+        <div class="stage-toolbar">
+          <div class="status"><i class="status-dot" id="status-dot"></i><span id="status-text">准备开始</span></div>
+          <div class="toolbar-actions">
+            <button class="mini-btn" type="button" id="focus-btn">专注模式</button>
+            <button class="mini-btn" type="button" id="fullscreen-btn">全屏</button>
+          </div>
+        </div>
+
+        <div class="stage-frame">
+          <div class="stage" id="stage">
+            <svg id="scene" viewBox="0 0 1200 804" role="img" aria-label="正在自动书写的双页手帐">
+              <defs>
+                <linearGradient id="skyGlow" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#a9e0dd"/>
+                  <stop offset=".67" stop-color="#77bfc1"/>
+                  <stop offset="1" stop-color="#4b9aa3"/>
+                </linearGradient>
+                <linearGradient id="paperFill" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stop-color="#fffdf5"/>
+                  <stop offset=".56" stop-color="#fcf8ee"/>
+                  <stop offset="1" stop-color="#f0e8d9"/>
+                </linearGradient>
+                <linearGradient id="paperWarm" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#fffdf7"/>
+                  <stop offset="1" stop-color="#f7f0e3"/>
+                </linearGradient>
+                <pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r=".75" fill="#b8b2a6" opacity=".35"/>
+                </pattern>
+                <filter id="bookShadow" x="-20%" y="-20%" width="140%" height="160%">
+                  <feDropShadow dx="0" dy="18" stdDeviation="17" flood-color="#23474b" flood-opacity=".3"/>
+                </filter>
+                <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+                  <feDropShadow dx="3" dy="5" stdDeviation="4" flood-color="#354a4a" flood-opacity=".22"/>
+                </filter>
+                <clipPath id="leftClip"><rect x="112" y="88" width="474" height="625" rx="3"/></clipPath>
+                <clipPath id="rightClip"><rect x="614" y="88" width="474" height="625" rx="3"/></clipPath>
+              </defs>
+
+              <g id="camera">
+                <rect width="1200" height="804" fill="url(#skyGlow)"/>
+                <path d="M0 620 C132 576 239 628 347 611 C493 588 562 634 703 607 C823 584 930 606 1200 565 L1200 804 L0 804Z" fill="#4d9ca5" opacity=".62"/>
+                <path d="M0 694 C145 639 239 693 388 675 C519 659 626 713 767 678 C929 639 1041 683 1200 645 L1200 804 L0 804Z" fill="#2c7f8d" opacity=".42"/>
+                <g opacity=".3" fill="#f7ffff">
+                  <ellipse cx="142" cy="644" rx="118" ry="17" transform="rotate(-8 142 644)"/>
+                  <ellipse cx="972" cy="668" rx="174" ry="20" transform="rotate(8 972 668)"/>
+                  <ellipse cx="560" cy="735" rx="170" ry="13" transform="rotate(-2 560 735)"/>
+                </g>
+
+                <g id="book" filter="url(#bookShadow)">
+                  <rect x="74" y="58" width="1052" height="662" rx="18" fill="#e9ddc9" opacity=".72"/>
+                  <rect x="89" y="69" width="1022" height="645" rx="12" fill="#cbbfae" opacity=".38"/>
+                  <rect x="103" y="82" width="500" height="638" rx="5" fill="url(#paperFill)"/>
+                  <rect x="597" y="82" width="500" height="638" rx="5" fill="url(#paperWarm)"/>
+                  <rect x="112" y="88" width="474" height="625" fill="url(#dots)" opacity=".7"/>
+                  <rect x="614" y="88" width="474" height="625" fill="url(#dots)" opacity=".7"/>
+                  <path d="M600 86 C590 217 592 575 600 713" stroke="#d3c8b6" stroke-width="5" opacity=".36" fill="none"/>
+                  <path d="M606 86 C616 226 614 576 606 713" stroke="#fffef8" stroke-width="4" opacity=".72" fill="none"/>
+                  <path d="M105 86 C121 97 127 109 127 133 M1095 86 C1081 98 1077 110 1077 133" stroke="#fff" stroke-width="4" opacity=".45" fill="none"/>
+                </g>
+
+                <g id="decor-layer"></g>
+                <g id="ink-layer"></g>
+                <g id="pen-layer" pointer-events="none">
+                  <g id="hand-pen" filter="url(#softShadow)">
+                    <!-- Generated raster asset. Its pencil tip is aligned to (0, 3), the animation anchor. -->
+                    <image id="hand-pen-art" href="assets/hand-pen-generated-v1.png" x="-25.3" y="-137.8" width="165" height="165" preserveAspectRatio="none"/>
+                  </g>
+                </g>
+              </g>
+            </svg>
+            <div class="stage-caption">live handwriting / no video</div>
+          </div>
+        </div>
+
+        <div class="playback" aria-label="播放控制">
+          <button class="primary" type="button" id="play-btn" title="播放">▶</button>
+          <button type="button" id="pause-btn" title="暂停">Ⅱ</button>
+          <input id="timeline" type="range" min="0" max="1" value="0" step="0.001" aria-label="动画进度">
+          <span class="time-readout" id="time-readout">00:00 / 00:00</span>
+          <div class="speed-pills" aria-label="播放速度">
+            <button type="button" data-speed="0.5">0.5×</button>
+            <button type="button" class="active" data-speed="1">1×</button>
+            <button type="button" data-speed="1.5">1.5×</button>
+            <button type="button" data-speed="2">2×</button>
+          </div>
+        </div>
+        <div class="legend" aria-hidden="true">
+          <span><i style="background:#dc725e"></i>书写</span>
+          <span><i style="background:#efbd55"></i>标记</span>
+          <span><i style="background:#77bc62"></i>贴纸</span>
+          <span><i style="background:#639dc8"></i>图表</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const NS = "http://www.w3.org/2000/svg";
+      const SAMPLE = {
+        title: "AI 同事观察册",
+        subtitle: "同价位不是同胃口，钱包先做代码审查",
+        points: [
+          { text: "Codex：会开终端的行动派", effect: "underline" },
+          { text: "Claude：耐心的长文编辑", effect: "box" },
+          { text: "同档月费：常见 20 美元", effect: "circle" },
+          { text: "Codex：额度随任务一起消耗", effect: "highlight" },
+          { text: "Claude Max：100 / 200 美元", effect: "strike" },
+          { text: "结论：返工才是隐藏的加班费", effect: "circle" }
+        ],
+        chart: [42, 35, 23]
+      };
+
+      const refs = {
+        form: document.querySelector("#content-form"),
+        title: document.querySelector("#title-input"),
+        subtitle: document.querySelector("#subtitle-input"),
+        pointList: document.querySelector("#point-list"),
+        chart: [document.querySelector("#chart-a"), document.querySelector("#chart-b"), document.querySelector("#chart-c")],
+        ink: document.querySelector("#ink-layer"),
+        decor: document.querySelector("#decor-layer"),
+        camera: document.querySelector("#camera"),
+        pen: document.querySelector("#hand-pen"),
+        play: document.querySelector("#play-btn"),
+        pause: document.querySelector("#pause-btn"),
+        timeline: document.querySelector("#timeline"),
+        timeReadout: document.querySelector("#time-readout"),
+        status: document.querySelector("#status-text"),
+        dot: document.querySelector("#status-dot"),
+        sample: document.querySelector("#sample-btn"),
+        focus: document.querySelector("#focus-btn"),
+        fullscreen: document.querySelector("#fullscreen-btn")
+      };
+
+      let state = {
+        model: SAMPLE,
+        actions: [],
+        duration: 1,
+        current: 0,
+        speed: 1,
+        playing: false,
+        raf: null,
+        lastFrame: 0,
+        pen: { x: 220, y: 165, angle: 0 }
+      };
+
+      const clamp = (n, min = 0, max = 1) => Math.min(max, Math.max(min, n));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const svg = (tag, attrs = {}) => {
+        const el = document.createElementNS(NS, tag);
+        Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+        return el;
+      };
+      const fmtTime = (seconds) => {
+        const s = Math.max(0, Math.round(seconds));
+        return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+      };
+      const readForm = () => ({
+        title: refs.title.value.trim() || SAMPLE.title,
+        subtitle: refs.subtitle.value.trim() || SAMPLE.subtitle,
+        points: Array.from(refs.pointList.querySelectorAll(".point-row")).map(row => ({
+          text: row.querySelector("input").value.trim(),
+          effect: row.querySelector("select").value
+        })).filter(point => point.text),
+        chart: refs.chart.map(input => clamp(Number(input.value) || 1, 1, 98))
+      });
+
+      const fillForm = (model) => {
+        refs.title.value = model.title;
+        refs.subtitle.value = model.subtitle;
+        refs.pointList.innerHTML = "";
+        model.points.forEach(point => {
+          const row = document.createElement("div");
+          row.className = "point-row";
+          row.innerHTML = `
+            <input type="text" value="" aria-label="知识点文字" autocomplete="off">
+            <select aria-label="标记动作">
+              <option value="none">无标记</option>
+              <option value="underline">下划线</option>
+              <option value="box">方框</option>
+              <option value="circle">画圈</option>
+              <option value="highlight">荧光</option>
+              <option value="strike">划掉</option>
+            </select>`;
+          row.querySelector("input").value = point.text;
+          row.querySelector("select").value = point.effect;
+          refs.pointList.appendChild(row);
+        });
+        refs.chart.forEach((input, index) => input.value = model.chart[index] || 1);
+      };
+
+      const getMeasure = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        return (text, size) => {
+          ctx.font = `${size}px "HanziPen SC", "HanziPen TC", "Hannotate SC", "Kaiti SC", "STKaiti", "KaiTi", serif`;
+          return ctx.measureText(text).width;
+        };
+      };
+      const measure = getMeasure();
+
+      const addTextAction = (actions, config) => {
+        const size = config.size || 24;
+        const text = config.text || "";
+        const widths = Array.from(text).map(char => Math.max(8, measure(char, size)));
+        const width = widths.reduce((sum, item) => sum + item, 0);
+        const duration = config.duration || Math.max(.7, Math.min(3.5, text.length * .095));
+        const action = { type: "text", text, x: config.x, y: config.y, size, color: config.color || "#26373a", widths, width, duration, start: 0, group: null, chars: [] };
+        action.start = actions.clock;
+        actions.items.push(action);
+        actions.clock += duration;
+        return action;
+      };
+
+      const addPathAction = (actions, config) => {
+        const action = { ...config, type: "path", start: actions.clock, path: null, length: 1 };
+        actions.items.push(action);
+        actions.clock += config.duration || .72;
+        return action;
+      };
+
+      const addStickerAction = (actions, config) => {
+        const action = { ...config, type: "sticker", start: actions.clock, group: null };
+        actions.items.push(action);
+        actions.clock += config.duration || .7;
+        return action;
+      };
+
+      const linePath = (x, y, width, style = "underline") => {
+        if (style === "underline") return `M ${x} ${y + 9} C ${x + width * .24} ${y + 6}, ${x + width * .52} ${y + 12}, ${x + width} ${y + 7}`;
+        if (style === "strike") return `M ${x} ${y - 6} C ${x + width * .25} ${y - 10}, ${x + width * .61} ${y - 1}, ${x + width} ${y - 7}`;
+        if (style === "highlight") return `M ${x - 3} ${y + 2} C ${x + width * .27} ${y - 1}, ${x + width * .67} ${y + 4}, ${x + width + 4} ${y + 1}`;
+        return "";
+      };
+      const boxPath = (x, y, width) => `M ${x - 8} ${y - 25} L ${x + width + 8} ${y - 25} L ${x + width + 8} ${y + 10} L ${x - 8} ${y + 10} Z`;
+      const circlePath = (x, y, width) => {
+        const cx = x + width / 2, cy = y - 8, rx = width / 2 + 13, ry = 19;
+        const k = .5522848;
+        return `M ${cx + rx} ${cy} C ${cx + rx} ${cy + ry * k}, ${cx + rx * k} ${cy + ry}, ${cx} ${cy + ry} C ${cx - rx * k} ${cy + ry}, ${cx - rx} ${cy + ry * k}, ${cx - rx} ${cy} C ${cx - rx} ${cy - ry * k}, ${cx - rx * k} ${cy - ry}, ${cx} ${cy - ry} C ${cx + rx * k} ${cy - ry}, ${cx + rx} ${cy - ry * k}, ${cx + rx} ${cy} Z`;
+      };
+
+      const buildTimeline = model => {
+        const actions = { items: [], clock: .48 };
+        const title = addTextAction(actions, { text: model.title, x: 154, y: 146, size: 32, duration: Math.max(1, model.title.length * .13), color: "#293b3c" });
+        actions.clock += .18;
+        addPathAction(actions, { d: linePath(title.x, title.y, title.width * .65, "underline"), stroke: "#d38b57", width: 3.6, duration: .54, cap: "round" });
+        actions.clock += .16;
+        addTextAction(actions, { text: model.subtitle, x: 154, y: 186, size: 19, duration: Math.max(1.05, model.subtitle.length * .07), color: "#465354" });
+        actions.clock += .24;
+
+        const points = model.points.slice(0, 7);
+        points.forEach((point, index) => {
+          const y = 245 + index * 53;
+          const prefix = `${String(index + 1).padStart(2, "0")}  `;
+          const textAction = addTextAction(actions, { text: prefix + point.text, x: 154, y, size: 22, duration: Math.max(.72, (point.text.length + 3) * .075), color: index === 5 ? "#394949" : "#29393a" });
+          actions.clock += .09;
+          if (point.effect !== "none") {
+            const d = point.effect === "box" ? boxPath(textAction.x, textAction.y, textAction.width) : point.effect === "circle" ? circlePath(textAction.x, textAction.y, textAction.width) : linePath(textAction.x, textAction.y, textAction.width, point.effect);
+            const style = {
+              underline: { stroke: "#df896e", width: 3.4, duration: .58 },
+              box: { stroke: "#d08f63", width: 3, duration: .76 },
+              circle: { stroke: "#c5665e", width: 3.2, duration: .84 },
+              highlight: { stroke: "#efc658", width: 15, duration: .64, opacity: .56 },
+              strike: { stroke: "#bb665a", width: 3.1, duration: .52 }
+            }[point.effect];
+            addPathAction(actions, { d, stroke: style.stroke, width: style.width, duration: style.duration, cap: "round", join: "round", opacity: style.opacity || 1, effect: point.effect });
+          }
+          if (index === 1) addStickerAction(actions, { kind: "sun", x: 457, y: y - 22, scale: .72, duration: .6 });
+          if (index === 3) addStickerAction(actions, { kind: "tape", x: 274, y: y + 24, scale: .72, duration: .66 });
+          if (index === 5) addStickerAction(actions, { kind: "cat", x: 470, y: y + 6, scale: .7, duration: .66 });
+          actions.clock += .22;
+        });
+
+        actions.clock += .36;
+        addTextAction(actions, { text: "钱包复盘", x: 671, y: 146, size: 30, duration: 1.2, color: "#293b3c" });
+        addPathAction(actions, { d: linePath(671, 146, 132, "underline"), stroke: "#73a6c5", width: 3.2, duration: .53, cap: "round" });
+        actions.clock += .18;
+        const rightLine = addTextAction(actions, { text: "月费  →  额度  →  任务  →  钱包", x: 671, y: 198, size: 19, duration: 1.8, color: "#445355" });
+        actions.clock += .18;
+        addPathAction(actions, { d: circlePath(671 + rightLine.width * .71, rightLine.y, rightLine.width * .22), stroke: "#c5665e", width: 3, duration: .78, cap: "round", join: "round" });
+        actions.clock += .22;
+        addStickerAction(actions, { kind: "idea", x: 1040, y: 131, scale: .75, duration: .66 });
+        addTextAction(actions, { text: "预算花在哪里？", x: 671, y: 310, size: 22, duration: 1.02, color: "#435456" });
+        actions.clock += .18;
+
+        const chart = addChartActions(actions, model.chart);
+        actions.clock = Math.max(actions.clock, chart.end + .1);
+        addStickerAction(actions, { kind: "star", x: 1028, y: 478, scale: .58, duration: .6 });
+        addTextAction(actions, { text: "月费只是入场券，返工才是隐藏 Boss。", x: 671, y: 612, size: 18, duration: 1.45, color: "#54706f" });
+        addTextAction(actions, { text: "注：价格为美元月费示意，地区与额度以官方页面为准。", x: 671, y: 676, size: 12, duration: 1.2, color: "#8a9290" });
+        return { items: actions.items, duration: actions.clock + 1.15 };
+      };
+
+      const arcPath = (cx, cy, r, start, end) => {
+        const startRad = (start - 90) * Math.PI / 180;
+        const endRad = (end - 90) * Math.PI / 180;
+        const x1 = cx + r * Math.cos(startRad), y1 = cy + r * Math.sin(startRad);
+        const x2 = cx + r * Math.cos(endRad), y2 = cy + r * Math.sin(endRad);
+        const large = end - start > 180 ? 1 : 0;
+        return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+      };
+      const wedgePath = (cx, cy, r, start, end) => {
+        const startRad = (start - 90) * Math.PI / 180;
+        const endRad = (end - 90) * Math.PI / 180;
+        const x1 = cx + r * Math.cos(startRad), y1 = cy + r * Math.sin(startRad);
+        const x2 = cx + r * Math.cos(endRad), y2 = cy + r * Math.sin(endRad);
+        const large = end - start > 180 ? 1 : 0;
+        return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+      };
+
+      const addChartActions = (actions, values) => {
+        const total = values.reduce((a, b) => a + b, 0) || 1;
+        const cx = 838, cy = 458, radius = 79;
+        let angle = 0;
+        const colors = ["#a7d7b9", "#b8acd2", "#f2bf70"];
+        const labels = ["订阅", "额度", "返工"];
+        const group = svg("g", { "aria-label": "饼图" });
+        refs.ink.appendChild(group);
+        const outline = svg("circle", { cx, cy, r: radius, fill: "none", stroke: "#5c8ba1", "stroke-width": 3.2, "stroke-linecap": "round" });
+        group.appendChild(outline);
+        const outlineAction = { type: "chart-outline", start: actions.clock, duration: 1.15, group, outline, length: 1, path: outline };
+        actions.items.push(outlineAction);
+        actions.clock += outlineAction.duration;
+        values.forEach((value, index) => {
+          const sweep = value / total * 360;
+          const start = angle, end = angle + sweep;
+          const wedge = svg("path", { d: wedgePath(cx, cy, radius - 5, start, end), fill: colors[index], opacity: 0 });
+          const divider = svg("path", { d: arcPath(cx, cy, radius - 1, start, end), fill: "none", stroke: "#5c8ba1", "stroke-width": 2.1, "stroke-linecap": "round", "stroke-dasharray": "1000", "stroke-dashoffset": "1000" });
+          group.appendChild(wedge);
+          group.appendChild(divider);
+          const labelAngle = (start + end) / 2;
+          const lx = cx + Math.cos((labelAngle - 90) * Math.PI / 180) * 130;
+          const ly = cy + Math.sin((labelAngle - 90) * Math.PI / 180) * 130;
+          const label = svg("text", { x: lx, y: ly, "text-anchor": "middle", "font-family": "HanziPen SC, HanziPen TC, Hannotate SC, Kaiti SC, STKaiti, KaiTi, serif", "font-size": 15, fill: colors[index], opacity: 0 });
+          label.textContent = `${labels[index]} ${Math.round(value / total * 100)}%`;
+          group.appendChild(label);
+          const action = { type: "chart-sector", start: actions.clock, duration: .76, group, wedge, divider, label, length: 1, path: divider };
+          actions.items.push(action);
+          actions.clock += action.duration;
+          angle = end;
+        });
+        return { end: actions.clock };
+      };
+
+      const createSticker = (kind) => {
+        const group = svg("g");
+        if (kind === "sun") {
+          group.appendChild(svg("circle", { cx: 0, cy: 0, r: 17, fill: "#f5d74f", stroke: "#415a48", "stroke-width": 2 }));
+          group.appendChild(svg("circle", { cx: -5, cy: -2, r: 2.1, fill: "#415a48" }));
+          group.appendChild(svg("circle", { cx: 5, cy: -2, r: 2.1, fill: "#415a48" }));
+          group.appendChild(svg("path", { d: "M-6 6 Q0 11 6 6", fill: "none", stroke: "#415a48", "stroke-width": 2, "stroke-linecap": "round" }));
+          for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; group.appendChild(svg("path", { d: `M${Math.cos(a) * 22} ${Math.sin(a) * 22} L${Math.cos(a) * 27} ${Math.sin(a) * 27}`, stroke: "#eebd48", "stroke-width": 3, "stroke-linecap": "round" })); }
+        } else if (kind === "cat") {
+          group.appendChild(svg("path", { d: "M-19 13 Q-23 -8 -14 -18 L-5 -11 Q2 -15 9 -11 L18 -18 Q24 -5 18 13 Q3 25 -19 13Z", fill: "#e49c4c", stroke: "#6b4a34", "stroke-width": 2 }));
+          group.appendChild(svg("circle", { cx: -7, cy: -1, r: 2, fill: "#4d403a" }));
+          group.appendChild(svg("circle", { cx: 8, cy: -1, r: 2, fill: "#4d403a" }));
+          group.appendChild(svg("path", { d: "M-4 6 Q0 9 4 6", fill: "none", stroke: "#6b4a34", "stroke-width": 1.8, "stroke-linecap": "round" }));
+        } else if (kind === "tape") {
+          group.appendChild(svg("rect", { x: -36, y: -13, width: 72, height: 26, rx: 5, fill: "#efc183", opacity: .72, transform: "rotate(-5)" }));
+          group.appendChild(svg("path", { d: "M-24 -10 V10 M-7 -11 V10 M10 -12 V9 M27 -12 V8", stroke: "#d79b63", "stroke-width": 2, opacity: .6 }));
+        } else if (kind === "idea") {
+          group.appendChild(svg("path", { d: "M0 -22 C17 -22 24 -7 17 5 C13 11 10 14 10 20 H-9 C-9 13 -14 10 -18 4 C-25 -8 -15 -22 0 -22Z", fill: "#61cad1", stroke: "#3e7180", "stroke-width": 2 }));
+          group.appendChild(svg("path", { d: "M-9 26 H9 M-7 31 H7", stroke: "#3e7180", "stroke-width": 3, "stroke-linecap": "round" }));
+          group.appendChild(svg("path", { d: "M-3 -6 L2 1 L-3 7 L7 -4 L1 -4 L5 -11", fill: "#f6e36d", stroke: "#6e7361", "stroke-width": 1.4 }));
+        } else {
+          group.appendChild(svg("path", { d: "M0 -25 L7 -7 L26 -7 L11 4 L17 23 L0 12 L-17 23 L-11 4 L-26 -7 L-7 -7 Z", fill: "#efbe58", stroke: "#7e633f", "stroke-width": 2 }));
+        }
+        return group;
+      };
+
+      const prepareScene = (model) => {
+        refs.ink.innerHTML = "";
+        refs.decor.innerHTML = "";
+        const built = buildTimeline(model);
+        state.actions = built.items;
+        state.duration = built.duration;
+        state.current = 0;
+        refs.timeline.max = state.duration;
+        refs.timeline.value = 0;
+
+        state.actions.forEach(action => {
+          if (action.type === "text") {
+            const group = svg("g", { "clip-path": action.x < 600 ? "url(#leftClip)" : "url(#rightClip)" });
+            action.group = group;
+            let x = action.x;
+            Array.from(action.text).forEach((char, index) => {
+              const node = svg("text", { x, y: action.y, "font-family": "HanziPen SC, HanziPen TC, Hannotate SC, Hannotate TC, Kaiti SC, STKaiti, FZKai-Z03, KaiTi, Noto Serif CJK SC, serif", "font-size": action.size, "font-weight": action.size > 27 ? 600 : 500, fill: action.color, opacity: 0 });
+              node.textContent = char;
+              group.appendChild(node);
+              action.chars.push({ node, x, width: action.widths[index] });
+              x += action.widths[index];
+            });
+            refs.ink.appendChild(group);
+          } else if (action.type === "path") {
+            const path = svg("path", { d: action.d, fill: "none", stroke: action.stroke, "stroke-width": action.width, "stroke-linecap": action.cap || "round", "stroke-linejoin": action.join || "round", opacity: action.opacity || 1, "stroke-dasharray": "1000", "stroke-dashoffset": "1000" });
+            action.path = path;
+            refs.ink.appendChild(path);
+            try { action.length = Math.max(1, path.getTotalLength()); } catch (_) { action.length = 1000; }
+            path.setAttribute("stroke-dasharray", action.length);
+            path.setAttribute("stroke-dashoffset", action.length);
+          } else if (action.type === "sticker") {
+            const group = createSticker(action.kind);
+            action.group = group;
+            refs.decor.appendChild(group);
+          } else if (action.type === "chart-outline") {
+            refs.ink.appendChild(action.group);
+            try { action.length = Math.max(1, action.outline.getTotalLength()); } catch (_) { action.length = 500; }
+            action.outline.setAttribute("stroke-dasharray", `${action.length} ${action.length}`);
+            action.outline.setAttribute("stroke-dashoffset", action.length);
+          } else if (action.type === "chart-sector") {
+            try { action.length = Math.max(1, action.divider.getTotalLength()); } catch (_) { action.length = 500; }
+            action.divider.setAttribute("stroke-dasharray", `${action.length} ${action.length}`);
+            action.divider.setAttribute("stroke-dashoffset", action.length);
+          }
+        });
+        setTime(0);
+      };
+
+      const actionProgress = (action, time) => clamp((time - action.start) / (action.duration || .01));
+
+      const updateText = (action, p) => {
+        const count = action.chars.length;
+        const cursor = p * count;
+        action.chars.forEach((char, index) => {
+          const local = clamp(cursor - index);
+          char.node.setAttribute("opacity", local);
+          char.node.setAttribute("transform", `translate(0 ${Math.sin((index + 1) * 1.7) * (1 - local) * 1.2})`);
+        });
+      };
+
+      const updatePath = (action, p) => {
+        const visible = 1 - p;
+        if (action.path) action.path.setAttribute("stroke-dashoffset", action.length * visible);
+      };
+
+      const updateSticker = (action, p) => {
+        const ease = 1 - Math.pow(1 - p, 3);
+        const rotation = action.kind === "cat" ? -4 : action.kind === "tape" ? -5 : 3;
+        const scale = (action.scale || 1) * (0.78 + ease * .22);
+        const y = action.y - (1 - ease) * 12;
+        action.group.setAttribute("opacity", ease);
+        action.group.setAttribute("transform", `translate(${action.x} ${y}) rotate(${rotation}) scale(${scale})`);
+      };
+
+      const updateChart = (action, p) => {
+        if (action.type === "chart-outline") {
+          action.outline.setAttribute("stroke-dashoffset", action.length * (1 - p));
+        } else {
+          action.wedge.setAttribute("opacity", p * .84);
+          const length = action.length || Math.max(1, action.divider.getTotalLength ? action.divider.getTotalLength() : 100);
+          action.divider.setAttribute("stroke-dashoffset", length * (1 - p));
+          action.label.setAttribute("opacity", clamp((p - .55) * 2.3));
+        }
+      };
+
+      const findPenTarget = time => {
+        const animatable = state.actions.filter(action => ["text", "path", "sticker", "chart-outline", "chart-sector"].includes(action.type));
+        const active = animatable.find(action => time >= action.start && time <= action.start + action.duration);
+        if (active) return { action: active, p: actionProgress(active, time) };
+        let previous = null, next = null;
+        animatable.forEach(action => {
+          const end = action.start + action.duration;
+          if (end <= time) previous = action;
+          if (!next && action.start > time) next = action;
+        });
+        return { previous, next, p: 1 };
+      };
+
+      const endpointFor = action => {
+        if (!action) return { x: 220, y: 165, angle: 0 };
+        if (action.type === "text") return { x: action.x + action.width, y: action.y - 7, angle: 0 };
+        if (["path", "chart-outline", "chart-sector"].includes(action.type) && action.path) {
+          const point = action.path.getPointAtLength(action.length);
+          const before = action.path.getPointAtLength(Math.max(0, action.length - 8));
+          return { x: point.x, y: point.y, angle: Math.atan2(point.y - before.y, point.x - before.x) * 180 / Math.PI };
+        }
+        if (action.type === "sticker") return { x: action.x, y: action.y, angle: 0 };
+        return { x: 838, y: 458, angle: 0 };
+      };
+
+      const updatePen = time => {
+        const target = findPenTarget(time);
+        let point;
+        if (target.action) {
+          const action = target.action, p = target.p;
+          if (action.type === "text") {
+            point = { x: action.x + action.width * p, y: action.y - 8, angle: Math.sin(p * Math.PI) * 2 };
+          } else if (["path", "chart-outline", "chart-sector"].includes(action.type) && action.path) {
+            const at = action.path.getPointAtLength(action.length * p);
+            const before = action.path.getPointAtLength(Math.max(0, action.length * p - 7));
+            point = { x: at.x, y: at.y, angle: Math.atan2(at.y - before.y, at.x - before.x) * 180 / Math.PI };
+          } else if (action.type === "sticker") {
+            point = { x: action.x, y: action.y - 12 * (1 - p), angle: 5 };
+          } else {
+            point = { x: 838, y: 458, angle: p * 12 };
+          }
+        } else {
+          const a = endpointFor(target.previous), b = endpointFor(target.next);
+          const travel = target.next ? clamp((time - (target.previous ? target.previous.start + target.previous.duration : 0)) / Math.max(.1, target.next.start - (target.previous ? target.previous.start + target.previous.duration : 0))) : 1;
+          point = { x: lerp(a.x, b.x, travel), y: lerp(a.y, b.y, travel) - Math.sin(travel * Math.PI) * 18, angle: lerp(a.angle, b.angle, travel) };
+        }
+        state.pen.x = lerp(state.pen.x, point.x, .34);
+        state.pen.y = lerp(state.pen.y, point.y, .34);
+        state.pen.angle = lerp(state.pen.angle, point.angle, .34);
+        refs.pen.setAttribute("transform", `translate(${state.pen.x} ${state.pen.y}) rotate(${state.pen.angle})`);
+      };
+
+      const updateCamera = time => {
+        let scale = 1, x = 0, y = 0;
+        if (time < 1.1) { const p = clamp(time / 1.1); scale = 1.04 - p * .04; x = -26 + p * 26; y = -14 + p * 14; }
+        if (time > state.duration - 1.25) { const p = clamp((time - (state.duration - 1.25)) / 1.25); scale = 1 + p * .045; x = -p * 20; y = -p * 8; }
+        refs.camera.setAttribute("transform", `translate(${x} ${y}) scale(${scale})`);
+      };
+
+      const setTime = seconds => {
+        state.current = clamp(seconds, 0, state.duration);
+        state.actions.forEach(action => {
+          const p = actionProgress(action, state.current);
+          if (action.type === "text") updateText(action, p);
+          else if (action.type === "path") updatePath(action, p);
+          else if (action.type === "sticker") updateSticker(action, p);
+          else if (action.type === "chart-outline" || action.type === "chart-sector") updateChart(action, p);
+        });
+        updatePen(state.current);
+        updateCamera(state.current);
+        refs.timeline.value = state.current;
+        refs.timeReadout.textContent = `${fmtTime(state.current)} / ${fmtTime(state.duration)}`;
+      };
+
+      const loop = now => {
+        if (!state.playing) return;
+        if (!state.lastFrame) state.lastFrame = now;
+        const delta = (now - state.lastFrame) / 1000;
+        state.lastFrame = now;
+        setTime(state.current + delta * state.speed);
+        if (state.current >= state.duration) {
+          state.playing = false;
+          state.lastFrame = 0;
+          setTime(state.duration);
+          updateStatus("已完成", false);
+          return;
+        }
+        state.raf = requestAnimationFrame(loop);
+      };
+
+      const updateStatus = (text, playing) => {
+        refs.status.textContent = text;
+        refs.dot.classList.toggle("playing", playing);
+        refs.play.textContent = playing ? "❚❚" : "▶";
+      };
+      const play = () => {
+        if (state.current >= state.duration) setTime(0);
+        state.playing = true;
+        state.lastFrame = 0;
+        updateStatus("正在书写", true);
+        cancelAnimationFrame(state.raf);
+        state.raf = requestAnimationFrame(loop);
+      };
+      const pause = () => {
+        state.playing = false;
+        cancelAnimationFrame(state.raf);
+        state.lastFrame = 0;
+        updateStatus("已暂停", false);
+      };
+      const rebuild = model => {
+        pause();
+        state.model = model;
+        prepareScene(model);
+        updateStatus("准备开始", false);
+      };
+
+      refs.form.addEventListener("submit", event => {
+        event.preventDefault();
+        rebuild(readForm());
+        play();
+      });
+      refs.sample.addEventListener("click", () => { fillForm(SAMPLE); rebuild(SAMPLE); });
+      refs.play.addEventListener("click", () => state.playing ? pause() : play());
+      refs.pause.addEventListener("click", pause);
+      refs.timeline.addEventListener("input", event => { pause(); setTime(Number(event.target.value)); updateStatus("已定位", false); });
+      document.querySelectorAll("[data-speed]").forEach(button => button.addEventListener("click", () => {
+        state.speed = Number(button.dataset.speed);
+        document.querySelectorAll("[data-speed]").forEach(item => item.classList.toggle("active", item === button));
+      }));
+      refs.focus.addEventListener("click", () => {
+        document.body.classList.toggle("focus-mode");
+        const focused = document.body.classList.contains("focus-mode");
+        document.querySelector(".control-panel").style.display = focused ? "none" : "";
+        document.querySelector(".workspace").style.gridTemplateColumns = focused ? "1fr" : "";
+        refs.focus.textContent = focused ? "退出专注" : "专注模式";
+      });
+      refs.fullscreen.addEventListener("click", async () => {
+        try {
+          if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+          else await document.exitFullscreen();
+        } catch (_) { updateStatus("浏览器未允许全屏", false); }
+      });
+      document.addEventListener("keydown", event => {
+        if (event.target.matches("input, textarea, select")) return;
+        if (event.code === "Space") { event.preventDefault(); state.playing ? pause() : play(); }
+        if (event.key.toLowerCase() === "r") { rebuild(state.model); }
+      });
+
+      fillForm(SAMPLE);
+      prepareScene(SAMPLE);
+      updateStatus("准备开始", false);
+    })();
+  </script>
+</body>
+</html>
