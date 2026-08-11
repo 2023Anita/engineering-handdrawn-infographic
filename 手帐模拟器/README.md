@@ -25,7 +25,13 @@
 
 ![最终演示画面](./output/playwright/codex-claude-cost-demo-poster.png)
 
-- [MP4 无声演示](./output/playwright/codex-claude-cost-demo.mp4)
+<video controls playsinline preload="metadata" width="100%" poster="https://raw.githubusercontent.com/2023Anita/engineering-handdrawn-infographic/main/%E6%89%8B%E5%B8%90%E6%A8%A1%E6%8B%9F%E5%99%A8/output/playwright/codex-claude-cost-demo-poster.png">
+  <source src="https://raw.githubusercontent.com/2023Anita/engineering-handdrawn-infographic/main/%E6%89%8B%E5%B8%90%E6%A8%A1%E6%8B%9F%E5%99%A8/output/playwright/codex-claude-cost-demo.mp4" type="video/mp4">
+  <a href="./output/playwright/codex-claude-cost-demo.mp4">下载 MP4 无声演示</a>
+</video>
+
+如果当前浏览器不显示播放器，也可以[直接打开 MP4 文件](./output/playwright/codex-claude-cost-demo.mp4)。
+
 - [逐阶段截图](./output/playwright/screenshots/)
 
 录屏参数：1440×1000、30 fps、约 37 秒、H.264、无音频。视频由当前 HTML 页面逐帧捕获生成，不是预渲染视频。
@@ -42,4 +48,3 @@
     ├── codex-claude-cost-demo-poster.png
     └── screenshots/
 ```
-

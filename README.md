@@ -109,3 +109,14 @@ Skill 会把用户需求整理为结构化提示词，然后按以下顺序工�
 - 更准确的工程结构约束；
 - 标签避碰和中文文字质量改进；
 - 不改变核心视觉体系的领域扩展。
+
+## 手帐模拟器演示
+
+这是一个可直接打开的单文件 HTML 手帐模拟器：文字按笔迹出现，下划线、画圈、方框、贴纸和饼图沿着手绘轨迹完成，手和笔始终跟随当前笔尖。
+
+<video controls playsinline preload="metadata" width="100%" poster="https://raw.githubusercontent.com/2023Anita/engineering-handdrawn-infographic/main/%E6%89%8B%E5%B8%98%E6%A8%A1%E6%8B%9F%E5%99%A8/output/playwright/codex-claude-cost-demo-poster.png">
+  <source src="https://raw.githubusercontent.com/2023Anita/engineering-handdrawn-infographic/main/%E6%89%8B%E5%B8%98%E6%A8%A1%E6%8B%9F%E5%99%A8/output/playwright/codex-claude-cost-demo.mp4" type="video/mp4">
+  <a href="./手帐模拟器/output/playwright/codex-claude-cost-demo.mp4">下载 MP4 无声演示</a>
+</video>
+
+[打开手帐模拟器目录](./手帐模拟器/) · [打开 HTML 模拟器](./手帐模拟器/手帐模拟器.html)
