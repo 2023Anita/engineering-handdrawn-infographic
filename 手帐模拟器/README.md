@@ -25,12 +25,9 @@
 
 ![最终演示画面](./output/playwright/codex-claude-cost-demo-poster.png)
 
-<video controls playsinline preload="metadata" width="100%" poster="https://raw.githubusercontent.com/2023Anita/engineering-handdrawn-infographic/main/%E6%89%8B%E5%B8%90%E6%A8%A1%E6%8B%9F%E5%99%A8/output/playwright/codex-claude-cost-demo-poster.png">
-  <source src="https://raw.githubusercontent.com/2023Anita/engineering-handdrawn-infographic/main/%E6%89%8B%E5%B8%90%E6%A8%A1%E6%8B%9F%E5%99%A8/output/playwright/codex-claude-cost-demo.mp4" type="video/mp4">
-  <a href="./output/playwright/codex-claude-cost-demo.mp4">下载 MP4 无声演示</a>
-</video>
+![手帐模拟器动态演示（点击查看 MP4）](./output/playwright/codex-claude-cost-demo.gif)
 
-如果当前浏览器不显示播放器，也可以[直接打开 MP4 文件](./output/playwright/codex-claude-cost-demo.mp4)。
+上方 GIF 会在 GitHub 页面内自动播放；需要完整清晰版本时，可[打开 MP4 无声演示](./output/playwright/codex-claude-cost-demo.mp4)。
 
 - [逐阶段截图](./output/playwright/screenshots/)
 
@@ -44,6 +41,7 @@
 ├── assets/
 │   └── hand-pen-generated-v1.png
 └── output/playwright/
+    ├── codex-claude-cost-demo.gif
     ├── codex-claude-cost-demo.mp4
     ├── codex-claude-cost-demo-poster.png
     └── screenshots/
